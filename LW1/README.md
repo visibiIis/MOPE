@@ -6,4 +6,4 @@
 - ас. Регіда П. Г.
 
 ## Завдання
-![alt text][../images/LW1/1.png]
+![alt text](../images/LW1/1.png)
