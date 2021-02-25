@@ -13,10 +13,16 @@ def solveEquation(m, min_y, max_y, min_x1, max_x1, min_x2, max_x2):
 
     main_dev = math.sqrt((2 * (2 * m - 2)) / (m * (m - 4)))
 
+    def calc_fuv(u, v):
+        if u >= v:
+            return u / v
+        else:
+            return v / u
+
     # Fuv
-    f_1 = disp_list[0] / disp_list[1]
-    f_2 = disp_list[2] / disp_list[0]
-    f_3 = disp_list[2] / disp_list[1]
+    f_1 = calc_fuv(disp_list[0], disp_list[1])
+    f_2 = calc_fuv(disp_list[2], disp_list[0])
+    f_3 = calc_fuv(disp_list[2], disp_list[1])
 
     # Deviation for each Fuv
     dev_list = [((m - 2) / m) * f for f in [f_1, f_2, f_3]]
