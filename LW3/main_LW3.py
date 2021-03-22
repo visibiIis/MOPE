@@ -23,10 +23,7 @@ def cochran(disp, m):
     Gp = max(disp) / sum(disp)
     Gt = [.9065, .7679, .6841, .6287, .5892, .5598, .5365, .5175, .5017, .4884]
 
-    if Gp < Gt[m - 2]:
-        return [round(Gp, 4), Gt[m - 2]]
-    else:
-        return
+    return [round(Gp, 4), Gt[m - 2]]
 
 # Student criteria
 def student(disp, m, y_r, x_n):
@@ -123,11 +120,6 @@ def experiment(m, min_x1, max_x1, min_x2, max_x2, min_x3, max_x3):
     disp = getDispersion(y, y_r)
     cochran_cr = cochran(disp, m)
 
-    if cochran_cr is None:
-        return False
-    else:
-        pass
-
     # Coefficients
     mx = [sum(i) / len(i) for i in x.T]
     my = sum(y_r)/N
@@ -184,7 +176,12 @@ def experiment(m, min_x1, max_x1, min_x2, max_x2, min_x3, max_x3):
         print(f"b{i} = {round(b[i], 3)}")
 
     print("\nДисперсії по рядках:\nS²{y} = ", disp, sep="")
-    print(f"\nЗа критерієм Кохрена дисперсія однорідна:\nGp < Gt - {cochran_cr[0]} < {cochran_cr[1]}")
+    if cochran_cr[0] < cochran_cr[1]:
+        print(f"\nЗа критерієм Кохрена дисперсія однорідна:\nGp < Gt - {cochran_cr[0]} < {cochran_cr[1]}")
+    else:
+        print(f"\nЗа критерієм Кохрена дисперсія неоднорідна:\nGp > Gt - {cochran_cr[0]} > {cochran_cr[1]}"
+              f"\nСпробуйте збільшити кілкість експериментів.")
+        return
 
     print(f"\nЗа критерієм Стьюдента коефіцієнти ", end="")
     for i in range(len(b_det)):
@@ -204,7 +201,4 @@ if __name__ == '__main__':
 
     M = 3
 
-    success = False
-    while not success:
-        success = experiment(M, Min_x1, Max_x1, Min_x2, Max_x2, Min_x3, Max_x3)
-        M += 1
+    experiment(M, Min_x1, Max_x1, Min_x2, Max_x2, Min_x3, Max_x3)
