@@ -1,0 +1,11 @@
+*.docx
+*.doc
+.idea
+# Default ignored files
+/shelf/
+/workspace.xml
+# Datasource local storage ignored files
+/../../../../../../../:\Education\KPI\Semester_IV\Homework\MOPE\.idea/dataSources/
+/dataSources.local.xml
+# Editor-based HTTP Client requests
+/httpRequests/
