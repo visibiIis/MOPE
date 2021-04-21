@@ -200,5 +200,8 @@ if __name__ == '__main__':
     Min_x3, Max_x3 = -25, 5
 
     M = 3
+    success = False
 
-    experiment(M, Min_x1, Max_x1, Min_x2, Max_x2, Min_x3, Max_x3)
+    while not success:
+        success = experiment(M, Min_x1, Max_x1, Min_x2, Max_x2, Min_x3, Max_x3)
+        M += 1
