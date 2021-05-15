@@ -1,5 +1,7 @@
 from random import randint
 from functools import reduce
+from _decimal import Decimal
+from scipy.stats import f, t
 import numpy as np
 
 # Cramer's rule
@@ -23,53 +25,47 @@ def m_ij(*arrays):
 
 # Cochran criteria
 def cochran(disp, m):
+    def get_cochran_value(f1, f2, q):
+        partResult1 = q / f2
+        params = [partResult1, f1, (f2 - 1) * f1]
+        fisherc = f.isf(*params)
+        result = fisherc / (fisherc + (f2 - 1))
+        return Decimal(result).quantize(Decimal('.0001')).__float__()
+
+    f_1 = m - 1
+    f_2 = len(disp)
+    p = 0.95
+    q_ = 1 - p
+
     Gp = max(disp) / sum(disp)
-    Gt = [.4709, .3346, .2758, .2419, .2159, .2034, .1911, .1815, .1736]
+    Gt = get_cochran_value(f_1, f_2, q_)
 
     return [round(Gp, 4), Gt[m - 2]]
 
 # Student criteria
 def student(disp, m, y_r, x_nT):
-    table = {
-        8: 2.306,
-        16: 2.120,
-        24: 2.064,
-        'inf': 1.960
-    }
+    def get_student_value(f3, q):
+        return Decimal(abs(t.ppf(q / 2, f3))).quantize(Decimal('.0001')).__float__()
 
     N = len(y_r)
+    f3 = (m - 1) * N
+    q = 0.05
+    t_our = get_student_value(f3, q)
 
     Sb = sum(disp) / len(y_r)
     Sbeta = (Sb / (m * N)) ** (1 / 2)
 
     beta = [sum([y_r[j] * x_nT[i][j] for j in range(N)]) / N for i in range(N)]
-    t = [abs(beta[i]) / Sbeta for i in range(len(beta))]
+    t_i = [abs(beta[i]) / Sbeta for i in range(len(beta))]
 
-    f3 = N * (m - 1)
+    importance = [True if el > t_our else False for el in list(t_i)]
 
-    if f3 > 30:
-        t_t = table['inf']
-    elif f3 > 0:
-        t_t = table[f3]
-    else:
-        return
-
-    result = []
-    for i in t:
-        if i < t_t:
-            result.append(False)
-        else:
-            result.append(True)
-
-    return result
+    return importance
 
 # Fisher criteria
 def fisher(y_r, y_st, b_det, disp, m):
-    table = {
-        8: [5.3, 4.5, 4.1, 3.8, 3.7, 3.6, 3.3],
-        16: [4.5, 3.6, 3.2, 3.0, 2.9, 2.7, 2.4],
-        24: [4.3, 3.4, 3.0, 2.8, 2.6, 2.5, 2.2],
-    }
+    def get_fisher_value(f3, f4, q):
+        return Decimal(abs(f.isf(q, f4, f3))).quantize(Decimal('.0001')).__float__()
 
     N = len(y_r)
     Sb = sum(disp) / N
@@ -80,9 +76,10 @@ def fisher(y_r, y_st, b_det, disp, m):
 
     f4 = N - d
     f3 = N * (m - 1)
+    q = 0.05
     Sad = (m / f4) * sum([(y_st[i] - y_r[i]) ** 2 for i in range(N)])
     Fap = Sad / Sb
-    Ft = table[f3][f4 - 1]
+    Ft = get_fisher_value(f3, f4, q)
 
     if Fap < Ft:
         return f"\nРівняння регресії адекватно оригіналу:\nFap < Ft: {round(Fap, 2)} < {Ft}"
@@ -152,6 +149,7 @@ def experiment(m, min_x1, max_x1, min_x2, max_x2, min_x3, max_x3):
     y_r = [round(sum(y[i]) / len(y[i]), 2) for i in range(N)]
 
     disp = getDispersion(y, y_r)
+    print(disp)
     cochran_cr = cochran(disp, m)
 
     # Get coefficients
