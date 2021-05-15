@@ -4,6 +4,7 @@ from _decimal import Decimal
 from itertools import compress
 from scipy.stats import f, t
 import numpy
+import time
 from functools import reduce
 
 
@@ -112,6 +113,7 @@ def cochran_criteria(m, N, y_table):
         return Decimal(result).quantize(Decimal('.0001')).__float__()
 
     print("Перевірка рівномірності дисперсій за критерієм Кохрена: m = {}, N = {}".format(m, N))
+    start = time.time()
     y_variations = [numpy.var(i) for i in y_table]
     max_y_variation = max(y_variations)
     gp = max_y_variation / sum(y_variations)
@@ -120,7 +122,9 @@ def cochran_criteria(m, N, y_table):
     p = 0.95
     q = 1 - p
     gt = get_cochran_value(f1, f2, q)
+    end = time.time()
     print("Gp = {}; Gt = {}; f1 = {}; f2 = {}; q = {:.2f}".format(gp, gt, f1, f2, q))
+    print("Час виконання: {} ms".format(round((end - start)*1000, 3)))
     if gp < gt:
         print("Gp < Gt => дисперсії рівномірні - все правильно")
         return True
@@ -134,6 +138,7 @@ def student_criteria(m, N, y_table, beta_coefficients):
         return Decimal(abs(t.ppf(q / 2, f3))).quantize(Decimal('.0001')).__float__()
 
     print("\nПеревірка значимості коефіцієнтів регресії за критерієм Стьюдента: m = {}, N = {} ".format(m, N))
+    start = time.time()
     average_variation = numpy.average(list(map(numpy.var, y_table)))
     variation_beta_s = average_variation / N / m
     standard_deviation_beta_s = math.sqrt(variation_beta_s)
@@ -142,6 +147,7 @@ def student_criteria(m, N, y_table, beta_coefficients):
     q = 0.05
     t_our = get_student_value(f3, q)
     importance = [True if el > t_our else False for el in list(t_i)]
+    end = time.time()
 
     print("Оцінки коефіцієнтів βs: " + ", ".join(list(map(lambda x: str(round(float(x), 3)), beta_coefficients))))
     print("Коефіцієнти ts: " + ", ".join(list(map(lambda i: "{:.2f}".format(i), t_i))))
@@ -150,6 +156,7 @@ def student_criteria(m, N, y_table, beta_coefficients):
     importance_to_print = ["важливий" if i else "неважливий" for i in importance]
     to_print = map(lambda x: x[0] + " " + x[1], zip(beta_i, importance_to_print))
     print(*to_print, sep="; ")
+    print("Час виконання: {} ms".format(round((end - start)*1000, 3)))
     print_equation(beta_coefficients, importance)
 
     return importance
@@ -159,6 +166,7 @@ def fisher_criteria(m, N, d, x_table, y_table, b_coefficients, importance):
     def get_fisher_value(f3, f4, q):
         return Decimal(abs(f.isf(q, f4, f3))).quantize(Decimal('.0001')).__float__()
 
+    start = time.time()
     f3 = (m - 1) * N
     f4 = N - d
     q = 0.05
@@ -171,7 +179,9 @@ def fisher_criteria(m, N, d, x_table, y_table, b_coefficients, importance):
     f_t = get_fisher_value(f3, f4, q)
     theoretical_values_to_print = list(
         zip(map(lambda x: "x1 = {0[1]:<10} x2 = {0[2]:<10} x3 = {0[3]:<10}".format(x), x_table), theoretical_y))
+    end = time.time()
     print("\nПеревірка адекватності моделі за критерієм Фішера: m = {}, N = {} для таблиці y_table".format(m, N))
+    print("Час виконання: {} ms".format(round((end - start)*1000, 3)))
     print("Теоретичні значення y для різних комбінацій факторів:")
     print("\n".join(["{arr[0]}: y = {arr[1]}".format(arr=el) for el in theoretical_values_to_print]))
     print("Fp = {}, Ft = {}".format(f_p, f_t))
